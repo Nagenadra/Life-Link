@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0 text-center">
+                    <i class="bi bi-person-plus"></i> Register to LifeLink
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="text-end mb-3">
+                    <a href="{% url 'accounts:home' %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-house"></i> Back to Home
+                    </a>
+                </div>
+
+                <form method="post" id="registerForm">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_role" class="form-label">Register as</label>
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="text-danger">{{ form.role.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_first_name" class="form-label">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger">{{ form.first_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="id_last_name" class="form-label">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger">{{ form.last_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_email" class="form-label">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger">{{ form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password1" class="form-label">Password</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger">{{ form.password1.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="id_password2" class="form-label">Confirm Password</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger">{{ form.password2.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Location Capture -->
+                    <!-- <div class="mb-3">
+                        <label class="form-label">Location (Required)</label>
+                        <div class="d-grid"> -->
+                            <!-- <button type="button" class="btn btn-outline-primary" id="getLocationBtn">
+                                <i class="bi bi-geo-alt"></i> Allow Location Access
+                            </button> -->
+                            <!-- <small class="text-muted mt-2" id="locationStatus">Click to capture your current location</small> -->
+                        
+                            <div class="mb-2">
+    <label class="form-label fw-bold">
+        Select Your Location (Required)
+    </label>
+
+    <input type="text" id="searchLocation"
+           class="form-control mb-2"
+           placeholder="Search location"
+           required
+           value="">
+
+    <button type="button" id="searchBtn"
+            class="btn btn-outline-secondary mb-3">
+        🔍 Search Location
+    </button>
+</div>
+
+<div id="map" style="
+    height: 320px;
+    border-radius: 10px;
+    margin-bottom: 10px;">
+</div>
+
+<p id="locationText" class="text-success small">
+    Location selected: —
+</p>
+
+<!-- Hidden fields for backend -->
+<input type="hidden" name="location_name" id="location_name">
+<input type="hidden" name="latitude" id="latitude">
+<input type="hidden" name="longitude" id="longitude">
+
+
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-person-plus"></i> Register
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a href="{% url 'accounts:login' %}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 
+<script>
+document.getElementById('getLocationBtn').addEventListener('click', function() {
+    const btn = this;
+    const status = document.getElementById('locationStatus');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Getting location...';
+    
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                
+                document.getElementById('latitude').value = lat;
+                document.getElementById('longitude').value = lng;
+                
+                // Reverse geocoding to get location name (simple version)
+                fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const locationName = data.city || data.locality || `${lat}, ${lng}`;
+                        document.getElementById('location_name').value = locationName;
+                        status.textContent = `Location captured: ${locationName}`;
+                        status.className = 'text-success mt-2';
+                    })
+                    .catch(() => {
+                        document.getElementById('location_name').value = `${lat}, ${lng}`;
+                        status.textContent = `Location captured: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                        status.className = 'text-success mt-2';
+                    });
+                
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Location Captured';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+            },
+            function(error) {
+                status.textContent = 'Error: Could not get location. Please enable location access.';
+                status.className = 'text-danger mt-2';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-geo-alt"></i> Allow Location Access';
+            }
+        );
+    } else {
+        status.textContent = 'Geolocation is not supported by your browser.';
+        status.className = 'text-danger mt-2';
+        btn.disabled = false;
+    }
+});
+</script> -->
+<script>
+let map = L.map('map').setView([16.5, 80.6], 7); // AP default
+let marker;
+
+// Map tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: 'Leaflet | © OpenStreetMap'
+}).addTo(map);
+
+// Search button click
+document.getElementById('searchBtn').addEventListener('click', function () {
+    const place = document.getElementById('searchLocation').value;
+
+    if (!place) {
+        alert("Please enter a location");
+        return;
+    }
+
+    fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${place}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert("Location not found");
+                return;
+            }
+
+            const lat = data[0].lat;
+            const lon = data[0].lon;
+            const name = data[0].display_name;
+
+            if (marker) map.removeLayer(marker);
+
+            marker = L.marker([lat, lon]).addTo(map);
+            map.setView([lat, lon], 14);
+
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lon;
+            document.getElementById('location_name').value = name;
+
+            document.getElementById('locationText').innerHTML =
+                `Location selected: <b>${name}</b>`;
+        });
+});
+
+// Click on map to adjust pin
+map.on('click', function (e) {
+    const lat = e.latlng.lat;
+    const lon = e.latlng.lng;
+
+    if (marker) map.removeLayer(marker);
+    marker = L.marker([lat, lon]).addTo(map);
+
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+        .then(res => res.json())
+        .then(data => {
+            const name = data.display_name;
+
+            document.getElementById('searchLocation').value = name;
+            document.getElementById('location_name').value = name;
+            document.getElementById('locationText').innerHTML =
+                `Location selected: <b>${name}</b>`;
+        });
+
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lon;
+});
+</script>
+
+
+
+
+{% endblock %}
+

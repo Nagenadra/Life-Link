@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-chat-dots"></i> Messages</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-body">
+                {% if chat_rooms %}
+                    <div class="list-group">
+                        {% for item in chat_rooms %}
+                            <a href="{% url 'chat:chat_room' item.other_user.id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">{{ item.other_user.username }}</h6>
+                                        <p class="mb-1 text-muted">
+                                            {% if item.last_message %}
+                                                {{ item.last_message.content|truncatewords:20 }}
+                                            {% else %}
+                                                No messages yet
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    {% if item.last_message %}
+                                        <small class="text-muted">{{ item.last_message.timestamp|date:"M d, g:i A" }}</small>
+                                    {% endif %}
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-chat-dots text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-3">No conversations yet. Start chatting with donors or blood banks from search results!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

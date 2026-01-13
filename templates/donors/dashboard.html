@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Donor Dashboard - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-person-check"></i> Donor Dashboard</h2>
+        <p class="text-muted">Welcome, {{ donor_profile.user.get_full_name|default:donor_profile.user.username }}!</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-droplet-fill text-danger" style="font-size: 3rem;"></i>
+                <h4 class="mt-2">Blood Group</h4>
+                <h3 class="text-danger">{{ donor_profile.blood_group }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="bi bi-heart-pulse text-danger" style="font-size: 3rem;"></i>
+                <h4 class="mt-2">Total Donations</h4>
+                <h3 class="text-danger">{{ donor_profile.total_donations }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                {% if eligible %}
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                    <h4 class="mt-2">Status</h4>
+                    <h5 class="text-success">Eligible</h5>
+                {% else %}
+                    <i class="bi bi-x-circle-fill text-warning" style="font-size: 3rem;"></i>
+                    <h4 class="mt-2">Status</h4>
+                    <h5 class="text-warning">Not Eligible</h5>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Availability</h5>
+                <form method="post" action="{% url 'donors:toggle_availability' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if donor_profile.availability %}btn-success{% else %}btn-secondary{% endif %}">
+                        {% if donor_profile.availability %}
+                            <i class="bi bi-toggle-on"></i> Availability ON
+                        {% else %}
+                            <i class="bi bi-toggle-off"></i> Availability OFF
+                        {% endif %}
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                {% if not eligible %}
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> {{ eligibility_message }}
+                    </div>
+                {% endif %}
+                {% if donor_profile.last_donation_date %}
+                    <p><strong>Last Donation:</strong> {{ donor_profile.last_donation_date|date:"F d, Y" }}</p>
+                {% else %}
+                    <p><strong>Last Donation:</strong> Never</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Upcoming Donations</h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_donations %}
+                    <div class="list-group">
+                        {% for donation in upcoming_donations %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <h6 class="mb-1">{{ donation.blood_bank.user.username }}</h6>
+                                        <small class="text-muted">
+                                            <i class="bi bi-calendar"></i> {{ donation.scheduled_date|date:"F d, Y g:i A" }}
+                                        </small>
+                                    </div>
+                                    <a href="{% url 'donors:cancel_donation' donation.id %}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this donation?')">
+                                        Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No upcoming donations scheduled.</p>
+                {% endif %}
+                <div class="mt-3">
+                    <a href="{% url 'donors:schedule_donation' %}" class="btn btn-danger">
+                        <i class="bi bi-plus-circle"></i> Schedule New Donation
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Recent Donations</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_donations %}
+                    <div class="list-group">
+                        {% for donation in recent_donations %}
+                            <div class="list-group-item">
+                                <h6 class="mb-1">{{ donation.blood_bank.user.username }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-check"></i> {{ donation.scheduled_date|date:"F d, Y" }}
+                                    <span class="badge bg-success ms-2">Completed</span>
+                                </small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No donation history.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <a href="{% url 'donors:profile' %}" class="btn btn-outline-primary">
+            <i class="bi bi-person-circle"></i> Edit Profile
+        </a>
+    </div>
+</div>
+{% endblock %}
+

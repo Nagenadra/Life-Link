@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}Scheduled Donors - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-people"></i> Scheduled Donors</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#scheduled">Scheduled</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#completed">Completed</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="scheduled">
+                <div class="card shadow">
+                    <div class="card-body">
+                        {% if scheduled_donations %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Donor</th>
+                                            <th>Blood Group</th>
+                                            <th>Age</th>
+                                            <th>Contact</th>
+                                            <th>Scheduled Date & Time</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for donation in scheduled_donations %}
+                                            <tr>
+                                                <td>{{ donation.donor.user.username }}</td>
+                                                <td>{{ donation.donor.blood_group }}</td>
+                                                <td>{{ donation.donor.age }}</td>
+                                                <td>{{ donation.donor.phone_number|default:"N/A" }}</td>
+                                                <td>{{ donation.scheduled_date|date:"F d, Y g:i A" }}</td>
+                                                <td>
+                                                    <form method="post" action="{% url 'bloodbanks:mark_completed' donation.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-success">
+                                                            Mark Completed
+                                                        </button>
+                                                    </form>
+                                                    <a href="{% url 'chat:chat_room' donation.donor.user.id %}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-chat"></i> Chat
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No scheduled donations.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="completed">
+                <div class="card shadow">
+                    <div class="card-body">
+                        {% if completed_donations %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Donor</th>
+                                            <th>Blood Group</th>
+                                            <th>Scheduled Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for donation in completed_donations %}
+                                            <tr>
+                                                <td>{{ donation.donor.user.username }}</td>
+                                                <td>{{ donation.donor.blood_group }}</td>
+                                                <td>{{ donation.scheduled_date|date:"F d, Y" }}</td>
+                                                <td><span class="badge bg-success">Completed</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No completed donations yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <a href="{% url 'bloodbanks:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+

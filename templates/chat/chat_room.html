@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.username }} - LifeLink{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: 70vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background-color: #f8f9fa;
+    }
+    .message {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 10px;
+        max-width: 70%;
+    }
+    .message.sent {
+        background-color: #dc3545;
+        color: white;
+        margin-left: auto;
+        text-align: right;
+    }
+    .message.received {
+        background-color: white;
+        border: 1px solid #dee2e6;
+    }
+    .chat-input-area {
+        border-top: 1px solid #dee2e6;
+        padding: 1rem;
+        background-color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-12">
+        <a href="{% url 'chat:chat_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Messages
+        </a>
+        <h4 class="d-inline ms-3">Chat with {{ other_user.username }}</h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow chat-container">
+            <div class="card-header bg-danger text-white">
+                <strong>{{ other_user.username }}</strong>
+                <small class="float-end">{{ other_user.get_role_display }}</small>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                {% for message in messages %}
+                    <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+                        <div class="fw-bold">{{ message.sender.username }}</div>
+                        <div>{{ message.content }}</div>
+                        <small class="opacity-75">{{ message.timestamp|date:"g:i A" }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="chat-input-area">
+                <form id="chat-form">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="message-input" placeholder="Type a message..." autocomplete="off">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const roomId = {{ room.id }};
+const receiverId = {{ other_user.id }};
+const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const chatSocket = new WebSocket(
+    wsProtocol + '//' + window.location.host + '/ws/chat/' + roomId + '/'
+);
+
+chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const messagesDiv = document.getElementById('chat-messages');
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ' + (data.sender_id === {{ user.id }} ? 'sent' : 'received');
+    
+    const timestamp = new Date().toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+    
+    messageDiv.innerHTML = `
+        <div class="fw-bold">${data.sender_username}</div>
+        <div>${data.message}</div>
+        <small class="opacity-75">${timestamp}</small>
+    `;
+    
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+};
+
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly');
+};
+
+document.querySelector('#chat-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value;
+    
+    if (message.trim()) {
+        chatSocket.send(JSON.stringify({
+            'message': message,
+            'receiver_id': receiverId
+        }));
+        messageInput.value = '';
+    }
+});
+
+// Scroll to bottom on load
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesDiv = document.getElementById('chat-messages');
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+</script>
+{% endblock %}
+

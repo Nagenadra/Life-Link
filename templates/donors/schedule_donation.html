@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Donation - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-calendar-plus"></i> Schedule Donation
+                </h4>
+            </div>
+            <div class="card-body">
+                {% if not eligible %}
+                    <div class="alert alert-warning">
+                        <strong>Note:</strong> {{ eligibility_message }}
+                    </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="blood_bank" class="form-label">Select Blood Bank</label>
+                        <select class="form-select" id="blood_bank" name="blood_bank" required>
+                            <option value="">Choose a blood bank...</option>
+                            {% for item in blood_banks %}
+                                <option value="{{ item.blood_bank.id }}">
+                                    {{ item.blood_bank.user.username }} - {{ item.blood_bank.user.location_name }} 
+                                    ({{ item.distance }} km away)
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if not blood_banks %}
+                            <small class="text-danger">No nearby blood banks found. Please check your location.</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="scheduled_date" class="form-label">Scheduled Date & Time</label>
+                        <input type="datetime-local" class="form-control" id="scheduled_date" name="scheduled_date" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger" {% if not eligible %}disabled{% endif %}>
+                            <i class="bi bi-calendar-check"></i> Schedule Donation
+                        </button>
+                        <a href="{% url 'donors:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set minimum date to today
+document.getElementById('scheduled_date').min = new Date().toISOString().slice(0, 16);
+</script>
+{% endblock %}
+

@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Inventory - LifeLink{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2><i class="bi bi-boxes"></i> Manage Inventory</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Update Inventory</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="action" class="form-label">Action</label>
+                        <select class="form-select" id="action" name="action" required>
+                            <option value="">Select action...</option>
+                            <option value="add">Add Units</option>
+                            <option value="remove">Remove Units</option>
+                            <option value="update">Update to Specific Amount</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="blood_group" class="form-label">Blood Group</label>
+                        <select class="form-select" id="blood_group" name="blood_group" required>
+                            <option value="">Select blood group...</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="units" class="form-label">Units</label>
+                        <input type="number" class="form-control" id="units" name="units" min="0" required>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-save"></i> Update Inventory
+                        </button>
+                        <a href="{% url 'bloodbanks:dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Current Inventory</h5>
+            </div>
+            <div class="card-body">
+                {% if inventory_items %}
+                    <div class="list-group">
+                        {% for item in inventory_items %}
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ item.blood_group }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ item.units }} units</small>
+                                    </div>
+                                    {% if item.is_low_stock %}
+                                        <span class="badge bg-warning">Low</span>
+                                    {% else %}
+                                        <span class="badge bg-success">OK</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No inventory items yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
